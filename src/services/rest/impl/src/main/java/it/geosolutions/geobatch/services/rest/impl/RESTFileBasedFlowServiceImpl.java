@@ -27,6 +27,7 @@ import it.geosolutions.geobatch.flow.event.IProgressListener;
 import it.geosolutions.geobatch.flow.event.ProgressListener;
 import it.geosolutions.geobatch.flow.event.action.BaseAction;
 import it.geosolutions.geobatch.flow.event.consumer.BaseEventConsumer;
+import it.geosolutions.geobatch.flow.event.consumer.EventConsumerDetails;
 import it.geosolutions.geobatch.flow.event.consumer.EventConsumerStatus;
 import it.geosolutions.geobatch.flow.event.consumer.file.FileBasedEventConsumer;
 import it.geosolutions.geobatch.flow.event.listeners.cumulator.CumulatingProgressListener;
@@ -59,6 +60,9 @@ import java.util.EventObject;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import net.sf.json.JSON;
+import net.sf.json.JSONSerializer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -265,6 +269,8 @@ public class RESTFileBasedFlowServiceImpl implements RESTFlowService {
             rcs.setStatus(RESTUtils.convertStatus(bec.getStatus()));
             rcs.setStartDate(RESTUtils.formatDate(bec.getCreationTimestamp()));
             rcs.setDescription(bec.toString());
+            EventConsumerDetails details = bec.getDetails();
+            rcs.setDetails(JSONSerializer.toJSON(details).toString());
             rcl.add(rcs);
         }
         return rcl;
