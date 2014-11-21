@@ -112,7 +112,7 @@ public class RESTFileBasedFlowServiceImpl implements RESTFlowService {
      * @see it.geosolutions.geobatch.services.rest.RESTFlowService#run(java.lang.String, java.lang.Boolean, byte[])
      */
     @Override
-    public String run(String flowId, Boolean fastfail, byte[] data) throws BadRequestRestEx,
+    public String run(String flowId, Boolean fastfail, String fileName, byte[] data) throws BadRequestRestEx,
             InternalErrorRestEx {
 
         if(LOGGER.isDebugEnabled()) {
@@ -132,12 +132,13 @@ public class RESTFileBasedFlowServiceImpl implements RESTFlowService {
         File eventFile = null;
 
         try {
-            StringBuilder fileName = new StringBuilder();
-            fileName.append("inputConfig").append(System.currentTimeMillis());
-
+        	if(fileName == null || fileName.isEmpty()) {
+        		fileName = "inputConfig" + System.currentTimeMillis() + ".tmp";
+        	}
+            
             // TODO: reconsider the usage of this temp dir: the consumer.flowinstancetempdir should be used,
             // or the watchdir. Creating such a dir will never be disposed automatically.
-            eventFile = new File(flowMan.getFlowTempDir() + File.pathSeparator + fileName.toString() + ".tmp");
+            eventFile = new File(flowMan.getFlowTempDir() + File.separator + fileName.toString() );
             LOGGER.warn("Creating temp input file " + eventFile + " . THIS FILE SHOULD BE PLACED SOMEWHERE ELSE");
 
             os = new FileOutputStream(eventFile);
@@ -247,7 +248,7 @@ public class RESTFileBasedFlowServiceImpl implements RESTFlowService {
      * @see it.geosolutions.geobatch.services.rest.RESTFlowService#getFlowConsumers(java.lang.String)
      */
     @Override
-    public RESTConsumerList getFlowConsumers(String flowId) throws NotFoundRestEx,
+    public RESTConsumerList getFlowConsumers(String flowId, boolean includeDetails) throws NotFoundRestEx,
             InternalErrorRestEx {
         
         if(LOGGER.isDebugEnabled()){
@@ -269,8 +270,10 @@ public class RESTFileBasedFlowServiceImpl implements RESTFlowService {
             rcs.setStatus(RESTUtils.convertStatus(bec.getStatus()));
             rcs.setStartDate(RESTUtils.formatDate(bec.getCreationTimestamp()));
             rcs.setDescription(bec.toString());
-            EventConsumerDetails details = bec.getDetails();
-            rcs.setDetails(JSONSerializer.toJSON(details).toString());
+            if(includeDetails) {
+	            EventConsumerDetails details = bec.getDetails();
+	            rcs.setDetails(JSONSerializer.toJSON(details).toString());
+            }
             rcl.add(rcs);
         }
         return rcl;
